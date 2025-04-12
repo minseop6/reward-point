@@ -9,6 +9,7 @@ import com.test.rewardpoint.repository.MemberPointConfigurationRepository;
 import com.test.rewardpoint.repository.PointConfigurationRepository;
 import com.test.rewardpoint.repository.PointRepository;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,14 +30,13 @@ public class PointService {
                 .orElse(PointConfiguration.getDefaultPointConfiguration());
         MemberPointConfiguration memberPointConfiguration = memberPointConfigurationRepository.findTopByDeletedAtIsNull()
                 .orElse(MemberPointConfiguration.getDefaultMemberPointConfiguration(request.getMemberId()));
-        Points memberPoints = new Points(
-                pointRepository.findByMemberIdAndRemainAmountIsGreaterThanAndExpiresDateIsLessThanEqual(
-                        request.getMemberId(),
-                        0,
-                        today
-                )
+        List<Point> memberPoints = pointRepository.findByMemberIdAndRemainAmountIsGreaterThanAndExpiresDateIsLessThanEqual(
+                request.getMemberId(),
+                0,
+                today
         );
-        int memberTotalPoint = memberPoints.calculateTotalRemainAmount() + request.getAmount();
+        Points points = new Points(memberPoints);
+        int memberTotalPoint = points.calculateTotalRemainAmount() + request.getAmount();
 
         pointConfiguration.validatePoint(request.getAmount());
         memberPointConfiguration.validatePoint(memberTotalPoint);
