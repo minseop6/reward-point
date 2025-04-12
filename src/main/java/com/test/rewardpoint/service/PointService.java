@@ -36,9 +36,10 @@ public class PointService {
                         today
                 )
         );
+        int memberTotalPoint = memberPoints.calculateTotalRemainAmount() + request.getAmount();
 
         pointConfiguration.validatePoint(request.getAmount());
-        memberPointConfiguration.validatePoint(request.getAmount(), memberPoints);
+        memberPointConfiguration.validatePoint(memberTotalPoint);
         Point point = request.toPointEntity();
 
         pointRepository.save(point);

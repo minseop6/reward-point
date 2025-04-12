@@ -1,5 +1,6 @@
 package com.test.rewardpoint.domain;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.test.rewardpoint.common.exception.BadRequestException;
@@ -65,7 +66,7 @@ public class PointConfigurationTest {
                     .build();
 
             // when & then
-            pointConfiguration.validatePoint(requestPoint);
+            assertDoesNotThrow(() -> pointConfiguration.validatePoint(requestPoint));
         }
     }
 }

@@ -44,8 +44,8 @@ public class MemberPointConfiguration extends BaseEntity {
                 .build();
     }
 
-    public void validatePoint(int point, Points memberPoints) {
-        if (memberPoints.calculateTotalRemainAmount() + point > maximumPointLimit) {
+    public void validatePoint(int point) {
+        if (point > maximumPointLimit) {
             throw new BadRequestException("최대 보유할 수 있는 적립금은 " + maximumPointLimit + "입니다.");
         }
     }

@@ -1,6 +1,7 @@
 package com.test.rewardpoint.mock;
 
 import java.util.Random;
+import java.util.UUID;
 
 public class RandomMock {
 
@@ -12,5 +13,9 @@ public class RandomMock {
 
     public static int createRandomInteger(int min, int max) {
         return random.nextInt(min, max);
+    }
+
+    public static String createRandomString() {
+        return UUID.randomUUID().toString();
     }
 }
