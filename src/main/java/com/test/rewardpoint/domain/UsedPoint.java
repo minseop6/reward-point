@@ -30,9 +30,6 @@ public class UsedPoint extends BaseEntity {
     @Column(nullable = false)
     private Integer amount;
 
-    @Column(nullable = false)
-    private String description;
-
     @Column
     private LocalDateTime canceledAt;
 
@@ -40,13 +37,11 @@ public class UsedPoint extends BaseEntity {
     public UsedPoint(
             Long pointId,
             Integer transactionId,
-            Integer amount,
-            String description
+            Integer amount
     ) {
         this.pointId = pointId;
         this.transactionId = transactionId;
         this.amount = amount;
-        this.description = description;
     }
 
     public boolean isCanceled() {

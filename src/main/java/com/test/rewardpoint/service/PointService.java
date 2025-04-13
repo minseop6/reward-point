@@ -5,10 +5,13 @@ import com.test.rewardpoint.domain.MemberPointConfiguration;
 import com.test.rewardpoint.domain.Point;
 import com.test.rewardpoint.domain.PointConfiguration;
 import com.test.rewardpoint.domain.Points;
+import com.test.rewardpoint.domain.Transaction;
 import com.test.rewardpoint.dto.PointCreationRequest;
+import com.test.rewardpoint.dto.PointUsingRequest;
 import com.test.rewardpoint.repository.MemberPointConfigurationRepository;
 import com.test.rewardpoint.repository.PointConfigurationRepository;
 import com.test.rewardpoint.repository.PointRepository;
+import com.test.rewardpoint.repository.TransactionRepository;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,7 @@ public class PointService {
     private final PointRepository pointRepository;
     private final PointConfigurationRepository pointConfigurationRepository;
     private final MemberPointConfigurationRepository memberPointConfigurationRepository;
+    private final TransactionRepository transactionRepository;
 
     @Transactional
     public void creatPoint(PointCreationRequest request) {
@@ -31,7 +35,7 @@ public class PointService {
                 .orElse(PointConfiguration.getDefaultPointConfiguration());
         MemberPointConfiguration memberPointConfiguration = memberPointConfigurationRepository.findTopByDeletedAtIsNull()
                 .orElse(MemberPointConfiguration.getDefaultMemberPointConfiguration(request.getMemberId()));
-        List<Point> memberPoints = pointRepository.findByMemberIdAndRemainAmountIsGreaterThanAndExpiresDateIsLessThanEqualAndCanceledAtIsNull(
+        List<Point> memberPoints = pointRepository.findByMemberIdAndRemainAmountIsGreaterThanAndExpiresDateIsGreaterThanEqualAndCanceledAtIsNull(
                 request.getMemberId(),
                 0,
                 today
@@ -51,5 +55,18 @@ public class PointService {
         Point point = pointRepository.findById(pointId)
                 .orElseThrow(() -> new NotFoundException("포인트가 존재하지 않습니다."));
         point.cancel();
+    }
+
+    @Transactional
+    public void usePoint(PointUsingRequest request) {
+        LocalDate today = LocalDate.now();
+        List<Point> memberPoints = pointRepository.findByMemberIdAndRemainAmountIsGreaterThanAndExpiresDateIsGreaterThanEqualAndCanceledAtIsNull(
+                request.getMemberId(),
+                0,
+                today
+        );
+        Transaction transaction = transactionRepository.save(request.toTransaction());
+        Points points = new Points(memberPoints);
+        points.use(transaction);
     }
 }

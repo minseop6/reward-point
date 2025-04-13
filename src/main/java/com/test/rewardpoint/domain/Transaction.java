@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -24,4 +25,13 @@ public class Transaction extends BaseEntity {
 
     @Column(nullable = false)
     private Integer amount;
+
+    @Builder
+    public Transaction(
+            Integer orderId,
+            Integer amount
+    ) {
+        this.orderId = orderId;
+        this.amount = amount;
+    }
 }

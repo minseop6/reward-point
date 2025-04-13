@@ -1,6 +1,7 @@
 package com.test.rewardpoint.controller;
 
 import com.test.rewardpoint.dto.PointCreationRequest;
+import com.test.rewardpoint.dto.PointUsingRequest;
 import com.test.rewardpoint.service.PointService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,5 +29,11 @@ public class PointController {
     @DeleteMapping("/{pointId}")
     public void cancelPoint(@PathVariable long pointId) {
         pointService.cancelPoint(pointId);
+    }
+
+    @PostMapping("/use")
+    @ResponseStatus(HttpStatus.OK)
+    public void usePoint(@RequestBody PointUsingRequest request) {
+        pointService.usePoint(request);
     }
 }

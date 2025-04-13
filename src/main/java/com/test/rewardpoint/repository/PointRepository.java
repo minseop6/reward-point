@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PointRepository extends JpaRepository<Point, Long> {
 
-    List<Point> findByMemberIdAndRemainAmountIsGreaterThanAndExpiresDateIsLessThanEqualAndCanceledAtIsNull(
+    List<Point> findByMemberIdAndRemainAmountIsGreaterThanAndExpiresDateIsGreaterThanEqualAndCanceledAtIsNull(
             Integer memberId,
             Integer remainAmount,
             LocalDate date

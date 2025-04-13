@@ -75,7 +75,7 @@ public class PointServiceTest {
             given(memberPointConfigurationRepository.findTopByDeletedAtIsNull())
                     .willReturn(Optional.of(memberPointConfiguration));
             given(
-                    pointRepository.findByMemberIdAndRemainAmountIsGreaterThanAndExpiresDateIsLessThanEqualAndCanceledAtIsNull(
+                    pointRepository.findByMemberIdAndRemainAmountIsGreaterThanAndExpiresDateIsGreaterThanEqualAndCanceledAtIsNull(
                             memberId,
                             0,
                             LocalDate.now()

@@ -78,4 +78,12 @@ public class Point extends BaseEntity {
         }
         this.canceledAt = LocalDateTime.now();
     }
+
+    public void use(int amount, int transactionId) {
+        if (this.remainAmount < amount) {
+            throw new BadRequestException("포인트가 부족합니다.");
+        }
+        this.remainAmount -= amount;
+        usedPoints.add(new UsedPoint(this.id, transactionId, amount));
+    }
 }
