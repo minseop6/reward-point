@@ -9,6 +9,7 @@ import com.test.rewardpoint.mock.PointMock;
 import com.test.rewardpoint.mock.RandomMock;
 import com.test.rewardpoint.mock.UsedPointMock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
@@ -55,7 +56,7 @@ public class PointTest {
     }
 
     @Nested
-    public class 포인트_적립_취소시 {
+    public class 포인트_적립_철회시 {
 
         @Test
         public void 사용된_이력이_있다면_예외를_발생시킨다() {
@@ -65,18 +66,20 @@ public class PointTest {
             Point point = PointMock.builder()
                     .usedPoints(usedPoints)
                     .build();
+            LocalDateTime canceledAt = LocalDateTime.now();
 
             // when & then
-            assertThrows(BadRequestException.class, point::cancel);
+            assertThrows(BadRequestException.class, () -> point.withdraw(canceledAt));
         }
 
         @Test
         public void 취소_일자를_변경한다() {
             // given
             Point point = PointMock.builder().build();
+            LocalDateTime canceledAt = LocalDateTime.now();
 
             // when
-            point.cancel();
+            point.withdraw(canceledAt);
 
             // then
             assertThat(point.getCanceledAt()).isNotNull();
@@ -117,6 +120,52 @@ public class PointTest {
                 softly.assertThat(point.getRemainAmount()).isEqualTo(existsPoint - usedPoint);
                 softly.assertThat(point.getUsedPoints().getFirst().getAmount()).isEqualTo(usedPoint);
                 softly.assertThat(point.getUsedPoints().getFirst().getTransactionId()).isEqualTo(transactionId);
+            });
+        }
+    }
+
+    @Nested
+    public class 포인트_사용_취소시 {
+
+        @Test
+        public void 취소할_수_있는_포인트를_초과했다면_예외를_발생시킨다() {
+            // given
+            int transactionId = RandomMock.createRandomInteger();
+            int cancelAmount = RandomMock.createRandomInteger(1, 1000);
+            int amount = RandomMock.createRandomInteger(1, cancelAmount);
+            Point point = PointMock.builder().amount(amount).build();
+
+            // when & then
+            assertThrows(
+                    BadRequestException.class,
+                    () -> point.cancel(transactionId, cancelAmount, LocalDateTime.now())
+            );
+        }
+
+        @Test
+        public void 부분취소라면_잔액에_추가된다() {
+            // given
+            int transactionId = RandomMock.createRandomInteger();
+            int cancelAmount = RandomMock.createRandomInteger(1, 1000);
+            int amount = RandomMock.createRandomInteger(cancelAmount + 1, cancelAmount * 3);
+            List<UsedPoint> usedPoints = List.of(UsedPointMock.builder()
+                    .transactionId(transactionId)
+                    .amount(amount)
+                    .build()
+            );
+            Point point = PointMock.builder()
+                    .amount(amount)
+                    .remainAmount(0)
+                    .usedPoints(usedPoints)
+                    .build();
+
+            // when
+            point.cancel(transactionId, cancelAmount, LocalDateTime.now());
+
+            // then
+            assertSoftly(softly -> {
+                softly.assertThat(point.getRemainAmount()).isEqualTo(cancelAmount);
+                softly.assertThat(point.getUsedPoints().getLast().getAmount()).isEqualTo(amount - cancelAmount);
             });
         }
     }

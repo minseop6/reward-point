@@ -10,6 +10,7 @@ import com.test.rewardpoint.domain.MemberPointConfiguration;
 import com.test.rewardpoint.domain.Point;
 import com.test.rewardpoint.domain.PointConfiguration;
 import com.test.rewardpoint.domain.Transaction;
+import com.test.rewardpoint.dto.PointCancellationRequest;
 import com.test.rewardpoint.dto.PointCreationRequest;
 import com.test.rewardpoint.dto.PointUsingRequest;
 import com.test.rewardpoint.mock.MemberPointConfigurationMock;
@@ -126,7 +127,7 @@ public class PointServiceTest {
             given(pointRepository.findById(pointId)).willReturn(Optional.of(point));
 
             // when & then
-            assertDoesNotThrow(() -> pointService.cancelPoint(pointId));
+            assertDoesNotThrow(() -> pointService.withdrawPoint(pointId));
         }
 
         @Test
@@ -137,7 +138,7 @@ public class PointServiceTest {
             given(pointRepository.findById(pointId)).willReturn(Optional.empty());
 
             // when & then
-            assertThrows(NotFoundException.class, () -> pointService.cancelPoint(pointId));
+            assertThrows(NotFoundException.class, () -> pointService.withdrawPoint(pointId));
         }
     }
 
@@ -179,6 +180,57 @@ public class PointServiceTest {
                 request.setMemberId(memberId != null ? memberId : RandomMock.createRandomInteger());
                 request.setAmount(amount != null ? amount : RandomMock.createRandomInteger(1, 100000));
                 request.setOrderId(orderId != null ? orderId : RandomMock.createRandomInteger());
+                return request;
+            }
+        }
+    }
+
+    @Nested
+    class 포인트_사용_취소시 {
+
+        @Test
+        public void 거래내역을_찾지_못한다면_예외가_발생한다() {
+            // given
+            int orderId = RandomMock.createRandomInteger();
+            PointCancellationRequest request = PointCancellationRequestMock.builder().orderId(orderId).build();
+
+            given(transactionRepository.findByOrderId(orderId)).willReturn(Optional.empty());
+
+            // when & then
+            assertThrows(NotFoundException.class, () -> pointService.cancelPoint(request));
+        }
+
+        @Test
+        public void 포인트_사용_취소에_성공한다() {
+            // given
+            int orderId = RandomMock.createRandomInteger();
+            int transactionId = RandomMock.createRandomInteger();
+            int cancelAmount = RandomMock.createRandomInteger(1, 1000);
+            Transaction transaction = TransactionMock.builder().id(transactionId).build();
+            List<Point> usedPoints = Stream.generate(() -> PointMock.builder().build()).limit(3).toList();
+            PointCancellationRequest request = PointCancellationRequestMock.builder()
+                    .orderId(orderId)
+                    .cancelAmount(cancelAmount)
+                    .build();
+
+            given(transactionRepository.findByOrderId(orderId)).willReturn(Optional.of(transaction));
+            given(pointRepository.findByTransactionId(transactionId)).willReturn(usedPoints);
+
+            // when & then
+            assertDoesNotThrow(() -> pointService.cancelPoint(request));
+        }
+
+        static class PointCancellationRequestMock {
+
+            @Builder
+            public static PointCancellationRequest create(
+                    Integer orderId,
+                    Integer cancelAmount
+            ) {
+                PointCancellationRequest request = new PointCancellationRequest();
+                request.setOrderId(orderId != null ? orderId : RandomMock.createRandomInteger());
+                request.setCancelAmount(
+                        cancelAmount != null ? cancelAmount : RandomMock.createRandomInteger(1, 100000));
                 return request;
             }
         }

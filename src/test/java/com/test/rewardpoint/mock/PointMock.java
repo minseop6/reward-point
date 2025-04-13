@@ -15,6 +15,7 @@ public class PointMock {
     public static Point create(
             Integer memberId,
             Integer amount,
+            Integer remainAmount,
             GrantBy grantBy,
             String description,
             LocalDate expiresDate,
@@ -33,6 +34,7 @@ public class PointMock {
                 .build();
 
         ReflectionTestUtils.setField(point, "usedPoints", new ArrayList<>(usedPoints != null ? usedPoints : List.of()));
+        ReflectionTestUtils.setField(point, "remainAmount", remainAmount != null ? remainAmount : point.getAmount());
 
         return point;
     }

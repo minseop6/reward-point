@@ -17,7 +17,7 @@ public class TransactionMock {
                 .amount(amount != null ? amount : RandomMock.createRandomInteger(1, 100000))
                 .build();
 
-        ReflectionTestUtils.setField(transaction, "id", id != null ? id : RandomMock.createRandomLong());
+        ReflectionTestUtils.setField(transaction, "id", id != null ? id : RandomMock.createRandomInteger());
 
         return transaction;
     }
