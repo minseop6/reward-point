@@ -1,8 +1,10 @@
 package com.test.rewardpoint.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 
+import com.test.rewardpoint.common.exception.NotFoundException;
 import com.test.rewardpoint.domain.GrantBy;
 import com.test.rewardpoint.domain.MemberPointConfiguration;
 import com.test.rewardpoint.domain.Point;
@@ -73,7 +75,7 @@ public class PointServiceTest {
             given(memberPointConfigurationRepository.findTopByDeletedAtIsNull())
                     .willReturn(Optional.of(memberPointConfiguration));
             given(
-                    pointRepository.findByMemberIdAndRemainAmountIsGreaterThanAndExpiresDateIsLessThanEqual(
+                    pointRepository.findByMemberIdAndRemainAmountIsGreaterThanAndExpiresDateIsLessThanEqualAndCanceledAtIsNull(
                             memberId,
                             0,
                             LocalDate.now()
@@ -102,6 +104,33 @@ public class PointServiceTest {
                 request.setGrantBy(grantBy != null ? grantBy : GrantBy.ADMIN);
                 return request;
             }
+        }
+    }
+
+    @Nested
+    class 적립_취소시 {
+
+        @Test
+        public void 포인트_취소에_성공한다() {
+            // given
+            long pointId = RandomMock.createRandomLong();
+            Point point = PointMock.builder().build();
+
+            given(pointRepository.findById(pointId)).willReturn(Optional.of(point));
+
+            // when & then
+            assertDoesNotThrow(() -> pointService.cancelPoint(pointId));
+        }
+
+        @Test
+        public void 포인트_취소시_포인트가_존재하지_않으면_예외가_발생한다() {
+            // given
+            long pointId = RandomMock.createRandomLong();
+
+            given(pointRepository.findById(pointId)).willReturn(Optional.empty());
+
+            // when & then
+            assertThrows(NotFoundException.class, () -> pointService.cancelPoint(pointId));
         }
     }
 }
