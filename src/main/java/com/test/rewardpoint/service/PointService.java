@@ -65,8 +65,8 @@ public class PointService {
                 0,
                 today
         );
-        Transaction transaction = transactionRepository.save(request.toTransaction());
         Points points = new Points(memberPoints);
+        Transaction transaction = transactionRepository.save(request.toTransaction());
         points.use(transaction);
     }
 }

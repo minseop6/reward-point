@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -49,7 +50,7 @@ public class Point extends BaseEntity {
 
     @OneToMany
     @BatchSize(size = 100)
-    private List<UsedPoint> usedPoints;
+    private final List<UsedPoint> usedPoints = new ArrayList<>();
 
     @Builder
     public Point(

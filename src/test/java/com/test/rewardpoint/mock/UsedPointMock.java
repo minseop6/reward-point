@@ -9,14 +9,12 @@ public class UsedPointMock {
     public static UsedPoint create(
             Long pointId,
             Integer transactionId,
-            Integer amount,
-            String description
+            Integer amount
     ) {
         return UsedPoint.builder()
                 .pointId(pointId != null ? pointId : RandomMock.createRandomLong())
                 .transactionId(transactionId != null ? transactionId : RandomMock.createRandomInteger())
                 .amount(amount != null ? amount : RandomMock.createRandomInteger(1, 100000))
-                .description(description != null ? description : RandomMock.createRandomString())
                 .build();
     }
 

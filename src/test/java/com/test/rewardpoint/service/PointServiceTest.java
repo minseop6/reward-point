@@ -9,14 +9,18 @@ import com.test.rewardpoint.domain.GrantBy;
 import com.test.rewardpoint.domain.MemberPointConfiguration;
 import com.test.rewardpoint.domain.Point;
 import com.test.rewardpoint.domain.PointConfiguration;
+import com.test.rewardpoint.domain.Transaction;
 import com.test.rewardpoint.dto.PointCreationRequest;
+import com.test.rewardpoint.dto.PointUsingRequest;
 import com.test.rewardpoint.mock.MemberPointConfigurationMock;
 import com.test.rewardpoint.mock.PointConfigurationMock;
 import com.test.rewardpoint.mock.PointMock;
 import com.test.rewardpoint.mock.RandomMock;
+import com.test.rewardpoint.mock.TransactionMock;
 import com.test.rewardpoint.repository.MemberPointConfigurationRepository;
 import com.test.rewardpoint.repository.PointConfigurationRepository;
 import com.test.rewardpoint.repository.PointRepository;
+import com.test.rewardpoint.repository.TransactionRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +47,9 @@ public class PointServiceTest {
 
     @Mock
     private MemberPointConfigurationRepository memberPointConfigurationRepository;
+
+    @Mock
+    private TransactionRepository transactionRepository;
 
     @Nested
     class 포인트_지급시 {
@@ -131,6 +138,49 @@ public class PointServiceTest {
 
             // when & then
             assertThrows(NotFoundException.class, () -> pointService.cancelPoint(pointId));
+        }
+    }
+
+    @Nested
+    class 포인트_사용시 {
+
+        @Test
+        public void 포인트_사용에_성공한다() {
+            // given
+            int memberId = RandomMock.createRandomInteger();
+            int amount = RandomMock.createRandomInteger(1, 1000);
+            Point point = PointMock.builder().memberId(memberId).amount(amount).build();
+            List<Point> existPoints = List.of(point);
+            PointUsingRequest request = PointUsingRequestMock.builder().memberId(memberId).amount(amount).build();
+            Transaction transaction = TransactionMock.builder().build();
+
+            given(
+                    pointRepository.findByMemberIdAndRemainAmountIsGreaterThanAndExpiresDateIsGreaterThanEqualAndCanceledAtIsNull(
+                            memberId,
+                            0,
+                            LocalDate.now()
+                    )
+            ).willReturn(existPoints);
+            given(transactionRepository.save(request.toTransaction())).willReturn(transaction);
+
+            // when & then
+            assertDoesNotThrow(() -> pointService.usePoint(request));
+        }
+
+        static class PointUsingRequestMock {
+
+            @Builder
+            public static PointUsingRequest create(
+                    Integer memberId,
+                    Integer amount,
+                    Integer orderId
+            ) {
+                PointUsingRequest request = new PointUsingRequest();
+                request.setMemberId(memberId != null ? memberId : RandomMock.createRandomInteger());
+                request.setAmount(amount != null ? amount : RandomMock.createRandomInteger(1, 100000));
+                request.setOrderId(orderId != null ? orderId : RandomMock.createRandomInteger());
+                return request;
+            }
         }
     }
 }

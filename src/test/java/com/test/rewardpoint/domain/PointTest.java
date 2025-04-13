@@ -1,6 +1,7 @@
 package com.test.rewardpoint.domain;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.test.rewardpoint.common.exception.BadRequestException;
@@ -79,6 +80,44 @@ public class PointTest {
 
             // then
             assertThat(point.getCanceledAt()).isNotNull();
+        }
+    }
+
+    @Nested
+    public class 포인트_사용시 {
+
+        @Test
+        public void 사용할_포인트가_잔액보다_크면_예외를_발생시킨다() {
+            // given
+            int existsPoint = RandomMock.createRandomInteger(1, 1000);
+            int usedPoint = RandomMock.createRandomInteger(existsPoint + 1, 2000);
+            int transactionId = RandomMock.createRandomInteger();
+            Point point = PointMock.builder().amount(existsPoint).build();
+
+            // when & then
+            assertThrows(
+                    BadRequestException.class,
+                    () -> point.use(usedPoint, transactionId)
+            );
+        }
+
+        @Test
+        public void 잔액에서_사용한_포인트만큼_차감된다() {
+            // given
+            int existsPoint = RandomMock.createRandomInteger(1, 1000);
+            int usedPoint = RandomMock.createRandomInteger(1, existsPoint);
+            int transactionId = RandomMock.createRandomInteger();
+            Point point = PointMock.builder().amount(existsPoint).build();
+
+            // when
+            point.use(usedPoint, transactionId);
+
+            // then
+            assertSoftly(softly -> {
+                softly.assertThat(point.getRemainAmount()).isEqualTo(existsPoint - usedPoint);
+                softly.assertThat(point.getUsedPoints().getFirst().getAmount()).isEqualTo(usedPoint);
+                softly.assertThat(point.getUsedPoints().getFirst().getTransactionId()).isEqualTo(transactionId);
+            });
         }
     }
 }

@@ -4,6 +4,7 @@ import com.test.rewardpoint.domain.GrantBy;
 import com.test.rewardpoint.domain.Point;
 import com.test.rewardpoint.domain.UsedPoint;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -31,7 +32,7 @@ public class PointMock {
                 .expiresDate(expiresDate != null ? expiresDate : LocalDate.now().plusDays(1))
                 .build();
 
-        ReflectionTestUtils.setField(point, "usedPoints", usedPoints != null ? usedPoints : List.of());
+        ReflectionTestUtils.setField(point, "usedPoints", new ArrayList<>(usedPoints != null ? usedPoints : List.of()));
 
         return point;
     }
