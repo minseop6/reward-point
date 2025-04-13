@@ -1,5 +1,6 @@
 package com.test.rewardpoint.controller;
 
+import com.test.rewardpoint.dto.PointCancellationRequest;
 import com.test.rewardpoint.dto.PointCreationRequest;
 import com.test.rewardpoint.dto.PointUsingRequest;
 import com.test.rewardpoint.service.PointService;
@@ -8,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -27,8 +29,8 @@ public class PointController {
     }
 
     @DeleteMapping("/{pointId}")
-    public void cancelPoint(@PathVariable long pointId) {
-        pointService.cancelPoint(pointId);
+    public void withdrawPoint(@PathVariable long pointId) {
+        pointService.withdrawPoint(pointId);
     }
 
     @PostMapping("/use")
@@ -36,4 +38,10 @@ public class PointController {
     public void usePoint(@RequestBody PointUsingRequest request) {
         pointService.usePoint(request);
     }
+
+    @PutMapping("/cancel")
+    public void cancelPoint(@RequestBody PointCancellationRequest request) {
+        pointService.cancelPoint(request);
+    }
+
 }

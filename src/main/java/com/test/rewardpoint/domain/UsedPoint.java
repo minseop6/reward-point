@@ -47,4 +47,9 @@ public class UsedPoint extends BaseEntity {
     public boolean isCanceled() {
         return canceledAt != null;
     }
+
+    public int cancel(LocalDateTime canceledAt) {
+        this.canceledAt = canceledAt;
+        return amount;
+    }
 }

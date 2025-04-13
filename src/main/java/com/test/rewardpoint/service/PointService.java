@@ -6,6 +6,7 @@ import com.test.rewardpoint.domain.Point;
 import com.test.rewardpoint.domain.PointConfiguration;
 import com.test.rewardpoint.domain.Points;
 import com.test.rewardpoint.domain.Transaction;
+import com.test.rewardpoint.dto.PointCancellationRequest;
 import com.test.rewardpoint.dto.PointCreationRequest;
 import com.test.rewardpoint.dto.PointUsingRequest;
 import com.test.rewardpoint.repository.MemberPointConfigurationRepository;
@@ -13,6 +14,7 @@ import com.test.rewardpoint.repository.PointConfigurationRepository;
 import com.test.rewardpoint.repository.PointRepository;
 import com.test.rewardpoint.repository.TransactionRepository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -51,10 +53,11 @@ public class PointService {
     }
 
     @Transactional
-    public void cancelPoint(long pointId) {
+    public void withdrawPoint(long pointId) {
+        LocalDateTime canceledAt = LocalDateTime.now();
         Point point = pointRepository.findById(pointId)
                 .orElseThrow(() -> new NotFoundException("포인트가 존재하지 않습니다."));
-        point.cancel();
+        point.withdraw(canceledAt);
     }
 
     @Transactional
@@ -68,5 +71,17 @@ public class PointService {
         Points points = new Points(memberPoints);
         Transaction transaction = transactionRepository.save(request.toTransaction());
         points.use(transaction);
+    }
+
+    @Transactional
+    public void cancelPoint(PointCancellationRequest request) {
+        LocalDateTime canceledAt = LocalDateTime.now();
+        Transaction transaction = transactionRepository.findByOrderId(request.getOrderId())
+                .orElseThrow(() -> new NotFoundException("포인트 사용 내역이 존재하지 않습니다."));
+        List<Point> usedPoints = pointRepository.findByTransactionId(transaction.getId());
+        Points points = new Points(usedPoints);
+
+        transaction.cancel(request.getCancelAmount());
+        points.cancel(transaction.getId(), request.getCancelAmount(), canceledAt);
     }
 }

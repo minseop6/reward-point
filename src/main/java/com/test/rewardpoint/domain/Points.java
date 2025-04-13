@@ -1,5 +1,7 @@
 package com.test.rewardpoint.domain;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -29,23 +31,24 @@ public class Points {
         }
     }
 
+    public void cancel(int transactionId, int amount, LocalDateTime canceledAt) {
+        List<Point> sortedPoints = sortPoints();
+        for (Point point : sortedPoints) {
+            if (amount <= 0) {
+                break;
+            }
+
+            int usablePoint = Math.min(point.getCancelableAmount(), amount);
+            point.cancel(transactionId, usablePoint, canceledAt);
+            amount -= usablePoint;
+        }
+    }
+
     private List<Point> sortPoints() {
         return points.stream().sorted(
-                (a, b) -> {
-                    if (a.getGrantBy() == GrantBy.ADMIN && b.getGrantBy() != GrantBy.ADMIN) {
-                        return -1;
-                    } else if (a.getGrantBy() != GrantBy.ADMIN && b.getGrantBy() == GrantBy.ADMIN) {
-                        return 1;
-                    }
-
-                    if (a.getExpiresDate().isBefore(b.getExpiresDate())) {
-                        return -1;
-                    } else if (a.getExpiresDate().isAfter(b.getExpiresDate())) {
-                        return 1;
-                    }
-
-                    return 0;
-                }
+                Comparator
+                        .comparing(Point::getGrantBy, Comparator.comparing(grantBy -> grantBy == GrantBy.ADMIN ? 0 : 1))
+                        .thenComparing(Point::getExpiresDate)
         ).toList();
     }
 }

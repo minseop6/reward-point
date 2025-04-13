@@ -1,5 +1,6 @@
 package com.test.rewardpoint.domain;
 
+import com.test.rewardpoint.common.configuration.event.EventPublisher;
 import com.test.rewardpoint.common.exception.BadRequestException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -72,19 +73,57 @@ public class Point extends BaseEntity {
         this.expiresDate = expiresDate;
     }
 
-    public void cancel() {
+    public int getCancelableAmount() {
+        return amount - remainAmount;
+    }
+
+    public void withdraw(LocalDateTime canceledAt) {
         boolean hasUsedPoint = this.usedPoints.stream().anyMatch(usedPoint -> !usedPoint.isCanceled());
         if (hasUsedPoint) {
-            throw new BadRequestException("이미 사용된 포인트는 취소할 수 없습니다.");
+            throw new BadRequestException("이미 사용된 포인트는 회수할 수 없습니다.");
         }
-        this.canceledAt = LocalDateTime.now();
+        this.canceledAt = canceledAt;
     }
 
     public void use(int amount, int transactionId) {
-        if (this.remainAmount < amount) {
+        if (remainAmount < amount) {
             throw new BadRequestException("포인트가 부족합니다.");
         }
-        this.remainAmount -= amount;
-        usedPoints.add(new UsedPoint(this.id, transactionId, amount));
+        remainAmount -= amount;
+        usedPoints.add(new UsedPoint(id, transactionId, amount));
+    }
+
+    public void cancel(int transactionId, int cancelAmount, LocalDateTime canceledAt) {
+        if (amount - remainAmount < cancelAmount) {
+            throw new BadRequestException("취소할 수 있는 포인트를 초과했습니다.");
+        }
+
+        int usedAmount = usedPoints.stream()
+                .filter(usedPoint -> usedPoint.getTransactionId() == transactionId)
+                .mapToInt(usedPoint -> usedPoint.cancel(canceledAt))
+                .sum();
+
+        boolean isPartialCancellation = usedAmount - cancelAmount > 0;
+        if (isExpired()) {
+            Point point = Point.builder()
+                    .amount(usedAmount - cancelAmount)
+                    .description(description)
+                    .grantBy(grantBy)
+                    .expiresDate(LocalDate.now().plusYears(1))
+                    .memberId(memberId)
+                    .build();
+            EventPublisher.raise(point);
+
+            return;
+        }
+
+        if (isPartialCancellation) {
+            usedPoints.add(new UsedPoint(id, transactionId, usedAmount - cancelAmount));
+        }
+        remainAmount += cancelAmount;
+    }
+
+    private boolean isExpired() {
+        return LocalDate.now().isAfter(expiresDate);
     }
 }
