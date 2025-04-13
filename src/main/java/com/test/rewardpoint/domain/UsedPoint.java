@@ -5,7 +5,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -18,7 +20,7 @@ public class UsedPoint extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
     private Long id;
-    
+
     @Column(nullable = false)
     private Long pointId;
 
@@ -30,4 +32,24 @@ public class UsedPoint extends BaseEntity {
 
     @Column(nullable = false)
     private String description;
+
+    @Column
+    private LocalDateTime canceledAt;
+
+    @Builder
+    public UsedPoint(
+            Long pointId,
+            Integer transactionId,
+            Integer amount,
+            String description
+    ) {
+        this.pointId = pointId;
+        this.transactionId = transactionId;
+        this.amount = amount;
+        this.description = description;
+    }
+
+    public boolean isCanceled() {
+        return canceledAt != null;
+    }
 }

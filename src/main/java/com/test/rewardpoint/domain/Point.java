@@ -14,6 +14,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -43,12 +44,21 @@ public class Point extends BaseEntity {
     @Column(nullable = false)
     private LocalDate expiresDate;
 
+    @Column
+    private LocalDateTime canceledAt;
+
     @OneToMany
+    @BatchSize(size = 100)
     private List<UsedPoint> usedPoints;
 
     @Builder
-    public Point(Integer memberId, Integer amount, GrantBy grantBy, String description,
-            LocalDate expiresDate) {
+    public Point(
+            Integer memberId,
+            Integer amount,
+            GrantBy grantBy,
+            String description,
+            LocalDate expiresDate
+    ) {
         LocalDate today = LocalDate.now();
         if (expiresDate.isBefore(today.plusDays(1)) || expiresDate.isAfter(today.plusYears(5))) {
             throw new BadRequestException("유효기간은 최소 1일 이상 최대 5년 미만으로 설정 가능합니다.");
@@ -59,5 +69,13 @@ public class Point extends BaseEntity {
         this.grantBy = grantBy;
         this.description = description;
         this.expiresDate = expiresDate;
+    }
+
+    public void cancel() {
+        boolean hasUsedPoint = this.usedPoints.stream().anyMatch(usedPoint -> !usedPoint.isCanceled());
+        if (hasUsedPoint) {
+            throw new BadRequestException("이미 사용된 포인트는 취소할 수 없습니다.");
+        }
+        this.canceledAt = LocalDateTime.now();
     }
 }

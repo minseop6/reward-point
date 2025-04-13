@@ -1,5 +1,6 @@
 package com.test.rewardpoint.service;
 
+import com.test.rewardpoint.common.exception.NotFoundException;
 import com.test.rewardpoint.domain.MemberPointConfiguration;
 import com.test.rewardpoint.domain.Point;
 import com.test.rewardpoint.domain.PointConfiguration;
@@ -30,7 +31,7 @@ public class PointService {
                 .orElse(PointConfiguration.getDefaultPointConfiguration());
         MemberPointConfiguration memberPointConfiguration = memberPointConfigurationRepository.findTopByDeletedAtIsNull()
                 .orElse(MemberPointConfiguration.getDefaultMemberPointConfiguration(request.getMemberId()));
-        List<Point> memberPoints = pointRepository.findByMemberIdAndRemainAmountIsGreaterThanAndExpiresDateIsLessThanEqual(
+        List<Point> memberPoints = pointRepository.findByMemberIdAndRemainAmountIsGreaterThanAndExpiresDateIsLessThanEqualAndCanceledAtIsNull(
                 request.getMemberId(),
                 0,
                 today
@@ -43,5 +44,12 @@ public class PointService {
         Point point = request.toPointEntity();
 
         pointRepository.save(point);
+    }
+
+    @Transactional
+    public void cancelPoint(long pointId) {
+        Point point = pointRepository.findById(pointId)
+                .orElseThrow(() -> new NotFoundException("포인트가 존재하지 않습니다."));
+        point.cancel();
     }
 }
