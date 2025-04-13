@@ -2,8 +2,11 @@ package com.test.rewardpoint.domain;
 
 import com.test.rewardpoint.common.configuration.event.EventPublisher;
 import com.test.rewardpoint.common.exception.BadRequestException;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -37,7 +40,8 @@ public class Point extends BaseEntity {
     @Column(nullable = false)
     private Integer remainAmount;
 
-    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "ENUM('SYSTEM', 'ADMIN')")
     private GrantBy grantBy;
 
     @Column(nullable = false)
@@ -49,7 +53,7 @@ public class Point extends BaseEntity {
     @Column
     private LocalDateTime canceledAt;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.PERSIST)
     @BatchSize(size = 100)
     private final List<UsedPoint> usedPoints = new ArrayList<>();
 
@@ -106,7 +110,7 @@ public class Point extends BaseEntity {
         boolean isPartialCancellation = usedAmount - cancelAmount > 0;
         if (isExpired()) {
             Point point = Point.builder()
-                    .amount(usedAmount - cancelAmount)
+                    .amount(cancelAmount)
                     .description(description)
                     .grantBy(grantBy)
                     .expiresDate(LocalDate.now().plusYears(1))

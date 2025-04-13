@@ -8,7 +8,7 @@ public class ExceptionResponse {
     public String message;
 
     public static ExceptionResponse from(ServerException serverException) {
-        return new ExceptionResponse(serverException.message);
+        return new ExceptionResponse(serverException.getMessage());
     }
 
     public static ExceptionResponse createUnknownExceptionResponse() {

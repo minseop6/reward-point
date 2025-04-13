@@ -39,7 +39,7 @@ public class PointConfiguration extends BaseEntity {
 
     public static PointConfiguration getDefaultPointConfiguration() {
         return PointConfiguration.builder()
-                .minimumPointPerGrant(1000)
+                .minimumPointPerGrant(1)
                 .maximumPointPerGrant(100000)
                 .build();
     }
