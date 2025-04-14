@@ -1,4 +1,4 @@
-package com.test.rewardpoint.repository;
+package com.test.rewardpoint.outbound.repository;
 
 import com.test.rewardpoint.domain.MemberPointConfiguration;
 import java.util.Optional;

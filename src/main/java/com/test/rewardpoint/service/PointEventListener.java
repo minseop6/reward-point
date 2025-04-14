@@ -1,7 +1,7 @@
 package com.test.rewardpoint.service;
 
 import com.test.rewardpoint.domain.Point;
-import com.test.rewardpoint.repository.PointRepository;
+import com.test.rewardpoint.outbound.repository.PointRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;

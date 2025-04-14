@@ -1,4 +1,4 @@
-package com.test.rewardpoint.controller;
+package com.test.rewardpoint.inbound.controller;
 
 import com.test.rewardpoint.dto.PointCancellationRequest;
 import com.test.rewardpoint.dto.PointCreationRequest;
